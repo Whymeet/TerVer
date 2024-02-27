@@ -59,9 +59,13 @@ def main():
     sorted_nodes = sorted(node_degrees, key=node_degrees.get, reverse=True)
 
     # Разбиваем вершины на три группы в соответствии с их количеством вхождений
-    central_circle = sorted_nodes[:3]
-    middle_circle = sorted_nodes[3:6]
-    outer_circle = sorted_nodes[6:]
+    num_groups = 3
+    nodes_per_group = len(sorted_nodes) // num_groups
+    remainder = len(sorted_nodes) % num_groups
+
+    central_circle = sorted_nodes[:nodes_per_group + remainder]
+    middle_circle = sorted_nodes[nodes_per_group + remainder:2 * nodes_per_group + remainder]
+    outer_circle = sorted_nodes[2 * nodes_per_group + remainder:]
 
     # Размещаем вершины на оболочках, формируя круги для каждой группы
     pos = {}

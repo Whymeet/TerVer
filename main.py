@@ -1,1 +1,1 @@
-print("hi")
+print(29 // 3)
