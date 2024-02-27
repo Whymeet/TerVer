@@ -31,8 +31,8 @@ def create_directed_graph(df):
     return G
 
 
-def visualize_graph(G, pos, central_circle, middle_circle, outer_circle):
-    """Визуализация графа с кольцами."""
+def visualize_graph(G, pos, central_circle, middle_circle, outer_circle, save_path=None):
+    """Визуализация графа с кольцами и сохранение изображения."""
     fig, ax = plt.subplots()
 
     # Рисуем граф с тонкими рёбрами
@@ -41,21 +41,27 @@ def visualize_graph(G, pos, central_circle, middle_circle, outer_circle):
 
     # Рисуем вершины с использованием кругов
     for i, group in enumerate([central_circle, middle_circle, outer_circle]):
-        nx.draw_networkx_nodes(G, pos=pos, nodelist=group, node_size=100, node_color='none', edgecolors='black', linewidths=0.5)  # Уменьшаем размер вершин и задаем тонкие обводки
+        nx.draw_networkx_nodes(G, pos=pos, nodelist=group, node_size=100, node_color='none', edgecolors='black',
+                               linewidths=0.5)  # Уменьшаем размер вершин и задаем тонкие обводки
 
     # Рисуем кольца
     for i, group in enumerate([central_circle, middle_circle, outer_circle]):
         radius = (i + 1) * 5
-        circle = plt.Circle((0, 0), radius, color='none', ec='black', linestyle='dashed', linewidth=0.5)  # Задаем тонкие линии для кругов
+        circle = plt.Circle((0, 0), radius, color='none', ec='black', linestyle='dashed',
+                            linewidth=0.7)  # Задаем тонкие линии для кругов
         ax.add_patch(circle)
 
     # Добавляем метки вершин
     labels = {node: node for node in G.nodes}
-    nx.draw_networkx_labels(G, pos=pos, labels=labels, font_size=6)
+    nx.draw_networkx_labels(G, pos=pos, labels=labels, font_size=8)
 
     ax.set_aspect('equal', adjustable='datalim')
-    plt.show()
 
+    if save_path:
+        plt.savefig(save_path, dpi=300)  # Сохраняем изображение по указанному пути
+        plt.close()  # Закрываем текущий граф, чтобы избежать отображения его в блокноте или консоли
+    else:
+        plt.show()
 
 def main():
     # Путь к файлу Excel
@@ -98,9 +104,10 @@ def main():
         for node, (xx, yy) in zip(group, zip(x, y)):
             pos[node] = (xx, yy)
 
-    # Визуализируем граф с кольцами
-    visualize_graph(G, pos, central_circle, middle_circle, outer_circle)
+    return G, pos, central_circle, middle_circle, outer_circle  # Возвращаем граф, позиции вершин и круги
 
 
 if __name__ == "__main__":
-    main()
+    save_path = r'D:\Unik\TerVer\data\graph_image.png'  # Замените путь на тот, который вам нужен
+    graph, pos, central_circle, middle_circle, outer_circle = main()  # Получаем граф, позиции вершин и круги
+    visualize_graph(graph, pos, central_circle, middle_circle, outer_circle, save_path=save_path)
