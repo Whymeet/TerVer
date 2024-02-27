@@ -39,7 +39,7 @@ def visualize_graph(G, pos):
 
 def main():
     # Путь к файлу Excel
-    file_path = r'D:\Unik\TerVer\data\Книга1_тест.xlsx'
+    file_path = r'C:\Users\Mufaka\PycharmProjects\TerVer\data\Книга1_тест.xlsx'
 
     # Считываем данные
     df = read_excel_data(file_path)
