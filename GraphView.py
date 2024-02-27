@@ -1,46 +1,7 @@
-# import pandas as pd
-# import networkx as nx
-# import matplotlib.pyplot as plt
-#
-# # Пример считывания данных из файла Excel (замените на свой путь к файлу)
-# df = pd.read_excel('Книга1_тест.xlsx', sheet_name='Лист1', index_col=0)
-# print(df)
-#
-# # Создание пустого ориентированного графа
-# G = nx.DiGraph()
-#
-# # Добавление ребер и вершин в граф
-# for i in range(df.shape[0]):
-#     for j in range(df.shape[1]):
-#         if df.iloc[i, j] == 1:
-#             G.add_edge(i+1, j+1)
-#
-# # Получаем словарь, содержащий количество вхождений для каждой вершины
-# node_degrees = dict(G.in_degree())
-#
-# # Сортируем вершины по количеству вхождений в убывающем порядке
-# sorted_nodes = sorted(node_degrees, key=node_degrees.get, reverse=True)
-#
-# # Разбиваем вершины на три группы в соответствии с их количеством вхождений
-# central_circle = sorted_nodes[:3]
-# middle_circle = sorted_nodes[3:6]
-# outer_circle = sorted_nodes[6:]
-#
-# # Размещаем вершины на оболочках
-# pos = nx.shell_layout(G, [central_circle, middle_circle, outer_circle])
-#
-# # Визуализация графа
-# nx.draw(G, pos, with_labels=True, font_weight='bold')
-#
-# # Отображение графа
-# plt.show()
-
-
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-
 
 file_path = r'D:\Unik\TerVerPrjct\dataForprjct\Книга1_тест.xlsx'
 # Пример считывания данных из файла Excel (замените на свой путь к файлу)
