@@ -31,9 +31,29 @@ def create_directed_graph(df):
     return G
 
 
-def visualize_graph(G, pos):
-    """Визуализация графа."""
-    nx.draw(G, pos=pos, with_labels=True, font_weight='bold')
+def visualize_graph(G, pos, central_circle, middle_circle, outer_circle):
+    """Визуализация графа с кольцами."""
+    fig, ax = plt.subplots()
+
+    # Рисуем граф
+    nx.draw_networkx_nodes(G, pos=pos, node_color='skyblue', node_size=200)
+    nx.draw_networkx_edges(G, pos=pos, edge_color='black', arrows=True)
+
+    # Рисуем вершины с использованием кругов
+    for i, group in enumerate([central_circle, middle_circle, outer_circle]):
+        nx.draw_networkx_nodes(G, pos=pos, nodelist=group, node_size=200, node_color='none', edgecolors='black', linewidths=2)
+
+    # Рисуем кольца
+    for i, group in enumerate([central_circle, middle_circle, outer_circle]):
+        radius = i + 1
+        circle = plt.Circle((0, 0), radius, color='none', ec='black', linestyle='dashed')
+        ax.add_patch(circle)
+
+    # Добавляем метки вершин
+    labels = {node: node for node in G.nodes}
+    nx.draw_networkx_labels(G, pos=pos, labels=labels, font_size=8)
+
+    ax.set_aspect('equal', adjustable='datalim')
     plt.show()
 
 
@@ -69,8 +89,6 @@ def main():
 
     # Размещаем вершины на оболочках, формируя круги для каждой группы
     pos = {}
-    num_nodes = len(G.nodes)
-
     for i, group in enumerate([central_circle, middle_circle, outer_circle]):
         theta = np.linspace(0, 2 * np.pi, len(group), endpoint=False)
         radius = i + 1  # Увеличиваем радиус для каждой группы
@@ -80,8 +98,8 @@ def main():
         for node, (xx, yy) in zip(group, zip(x, y)):
             pos[node] = (xx, yy)
 
-    # Визуализируем граф
-    visualize_graph(G, pos)
+    # Визуализируем граф с кольцами
+    visualize_graph(G, pos, central_circle, middle_circle, outer_circle)
 
 
 if __name__ == "__main__":
