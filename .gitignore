@@ -8,4 +8,4 @@
 *.pyo
 *.pyd
 __pycache__/
-/data/*
+/data/
