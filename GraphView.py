@@ -35,23 +35,23 @@ def visualize_graph(G, pos, central_circle, middle_circle, outer_circle):
     """Визуализация графа с кольцами."""
     fig, ax = plt.subplots()
 
-    # Рисуем граф
-    nx.draw_networkx_nodes(G, pos=pos, node_color='skyblue', node_size=200)
-    nx.draw_networkx_edges(G, pos=pos, edge_color='black', arrows=True)
+    # Рисуем граф с тонкими рёбрами
+    nx.draw_networkx_nodes(G, pos=pos, node_color='skyblue', node_size=100)  # Уменьшаем размер вершин
+    nx.draw_networkx_edges(G, pos=pos, edge_color='black', width=0.1, arrows=True)  # Задаем тонкие рёбра
 
     # Рисуем вершины с использованием кругов
     for i, group in enumerate([central_circle, middle_circle, outer_circle]):
-        nx.draw_networkx_nodes(G, pos=pos, nodelist=group, node_size=200, node_color='none', edgecolors='black', linewidths=2)
+        nx.draw_networkx_nodes(G, pos=pos, nodelist=group, node_size=100, node_color='none', edgecolors='black', linewidths=0.5)  # Уменьшаем размер вершин и задаем тонкие обводки
 
     # Рисуем кольца
     for i, group in enumerate([central_circle, middle_circle, outer_circle]):
-        radius = i + 1
-        circle = plt.Circle((0, 0), radius, color='none', ec='black', linestyle='dashed')
+        radius = (i + 1) * 5
+        circle = plt.Circle((0, 0), radius, color='none', ec='black', linestyle='dashed', linewidth=0.5)  # Задаем тонкие линии для кругов
         ax.add_patch(circle)
 
     # Добавляем метки вершин
     labels = {node: node for node in G.nodes}
-    nx.draw_networkx_labels(G, pos=pos, labels=labels, font_size=8)
+    nx.draw_networkx_labels(G, pos=pos, labels=labels, font_size=6)
 
     ax.set_aspect('equal', adjustable='datalim')
     plt.show()
@@ -59,7 +59,7 @@ def visualize_graph(G, pos, central_circle, middle_circle, outer_circle):
 
 def main():
     # Путь к файлу Excel
-    file_path = r'C:\Users\Mufaka\PycharmProjects\TerVer\data\Книга1_тест.xlsx'
+    file_path = r'D:\Unik\TerVer\data\Книга1_тест.xlsx'
 
     # Считываем данные
     df = read_excel_data(file_path)
@@ -91,7 +91,7 @@ def main():
     pos = {}
     for i, group in enumerate([central_circle, middle_circle, outer_circle]):
         theta = np.linspace(0, 2 * np.pi, len(group), endpoint=False)
-        radius = i + 1  # Увеличиваем радиус для каждой группы
+        radius = (i + 1) * 5  # Увеличиваем радиус для каждой группы в 5 раз
         x = radius * np.cos(theta)
         y = radius * np.sin(theta)
 
