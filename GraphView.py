@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-
+import shutil
 
 # Загрузка данных из файла Excel
 def pers_data(df):
@@ -44,11 +44,6 @@ def S_group(df):
     print(f"S_group = {round(V_vz_plus / V_n_plus, 2) * 100}")
     print(f"Э_group = {round(V_n_plus / N, 2)}")
     print(f"BB_group = {round((100 * V_vz_plus) / (0.5 * N * (N - 1)), 2)}")
-
-
-def read_excel_data(file_path):
-    """Считывание данных из файла Excel."""
-    return pd.read_excel(file_path, sheet_name='Лист1', index_col=0)
 
 
 def calculate_statistics(df):
@@ -99,19 +94,22 @@ def visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle
 
     ax.set_aspect('equal', adjustable='datalim')
 
-    plt.savefig(output_file, dpi= 500)
+    plt.savefig(output_file, dpi=500)
     plt.close()
 
-def create_new_sheet_with_statistics(file_path):
+def create_new_sheet_with_statistics(input_file_path, output_file_path):
     # Считываем данные
-    df = pd.read_excel(file_path, sheet_name='Лист1', index_col=0)
+    df = pd.read_excel(input_file_path, sheet_name='Лист1', index_col=0)
 
     # Вычисляем статистики
     V_Plus, B_Plus, emotional_expansiveness, sociometric_status = calculate_statistics(df)
 
     # Создаем новый лист с именем 'Статистика'
-    with pd.ExcelWriter(file_path, engine='openpyxl', mode='a') as writer:
-        # Если файл уже существует, добавляем к нему новый лист
+    with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
+        # Записываем исходные данные
+        df.to_excel(writer, sheet_name='Лист1')
+
+        # Создаем новый лист для статистики
         new_sheet_name = 'Статистика'
         df_statistics = pd.DataFrame({
             'V_Plus': V_Plus,
@@ -122,14 +120,16 @@ def create_new_sheet_with_statistics(file_path):
 
         df_statistics.to_excel(writer, sheet_name=new_sheet_name)
 
-
-
 def main():
-    # Путь к файлу Excel
-    file_path = r'D:\Unik\TerVer\data\Книга1_тест.xlsx'
+    # Пути к файлам Excel
+    input_file_path = r'D:\Unik\TerVer\data\Книга1_тест.xlsx'
+    output_file_path = r'D:\Unik\TerVer\data\Книга1_тест_со_статистикой.xlsx'
 
-    # Считываем данные
-    df = read_excel_data(file_path)
+    # Создаем копию файла Excel
+    shutil.copy(input_file_path, output_file_path)
+
+    # Считываем данные из копии файла
+    df = pd.read_excel(output_file_path, sheet_name='Лист1', index_col=0)
     print(df)
 
     # Вычисляем статистики
@@ -165,13 +165,12 @@ def main():
 
         for node, (xx, yy) in zip(group, zip(x, y)):
             pos[node] = (xx, yy)
+    # Добавляем статистику в созданный файл Excel
+    create_new_sheet_with_statistics(input_file_path, output_file_path)
 
     # Визуализируем граф с кольцами
-    output_file = r"D:\Unik\TerVer\data\image.png"
-    visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_file)
-
+    output_image_file = r"D:\Unik\TerVer\data\image.png"
+    visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_image_file)
 
 if __name__ == "__main__":
-    file_path = r"D:\Unik\TerVer\data\Книга1_тест.xlsx"
-    create_new_sheet_with_statistics(file_path)
     main()
