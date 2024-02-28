@@ -1,8 +1,13 @@
+import os
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
 import shutil
+import os
+from openpyxl import Workbook
+from openpyxl.drawing.image import Image
 
 # Загрузка данных из файла Excel
 def pers_data(df):
@@ -94,22 +99,18 @@ def visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle
 
     ax.set_aspect('equal', adjustable='datalim')
 
-    plt.savefig(output_file, dpi=500)
+    plt.savefig(output_file, dpi=100)
     plt.close()
 
-def create_new_sheet_with_statistics(input_file_path, output_file_path):
-    # Считываем данные
-    df = pd.read_excel(input_file_path, sheet_name='Лист1', index_col=0)
 
-    # Вычисляем статистики
+def create_new_sheet_with_statistics(input_file_path, output_file_path):
+    df = pd.read_excel(input_file_path, sheet_name='Лист1', index_col=0)
     V_Plus, B_Plus, emotional_expansiveness, sociometric_status = calculate_statistics(df)
 
-    # Создаем новый лист с именем 'Статистика'
+
     with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
-        # Записываем исходные данные
         df.to_excel(writer, sheet_name='Лист1')
 
-        # Создаем новый лист для статистики
         new_sheet_name = 'Статистика'
         df_statistics = pd.DataFrame({
             'V_Plus': V_Plus,
@@ -119,6 +120,12 @@ def create_new_sheet_with_statistics(input_file_path, output_file_path):
         }, index=df.index)
 
         df_statistics.to_excel(writer, sheet_name=new_sheet_name)
+
+        workbook = writer.book
+        sheet = workbook[new_sheet_name]
+        img_path = r'D:\Unik\TerVer\data\image.png'
+        img = Image(img_path)
+        sheet.add_image(img, 'I1')
 
 def main():
     # Пути к файлам Excel
@@ -165,12 +172,14 @@ def main():
 
         for node, (xx, yy) in zip(group, zip(x, y)):
             pos[node] = (xx, yy)
-    # Добавляем статистику в созданный файл Excel
-    create_new_sheet_with_statistics(input_file_path, output_file_path)
 
     # Визуализируем граф с кольцами
     output_image_file = r"D:\Unik\TerVer\data\image.png"
     visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_image_file)
+
+    # Добавляем статистику в созданный файл Excel
+    create_new_sheet_with_statistics(input_file_path, output_file_path)
+
 
 if __name__ == "__main__":
     main()
