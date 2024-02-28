@@ -1,15 +1,13 @@
 import os
-
+import shutil
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-import shutil
-import os
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image
 
-# Загрузка данных из файла Excel
+
 def pers_data(df):
     """
     Выводит статистику по каждому участнику.
@@ -77,23 +75,18 @@ def visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle
     """Визуализация графа с кольцами."""
     fig, ax = plt.subplots()
 
-    # Рисуем граф с тонкими рёбрами
-    nx.draw_networkx_nodes(G, pos=pos, node_color='skyblue', node_size=100)  # Уменьшаем размер вершин
-    nx.draw_networkx_edges(G, pos=pos, edge_color='black', width=0.1, arrows=True)  # Задаем тонкие рёбра
+    nx.draw_networkx_nodes(G, pos=pos, node_color='skyblue', node_size=100)
+    nx.draw_networkx_edges(G, pos=pos, edge_color='black', width=0.1, arrows=True)
 
-    # Рисуем вершины с использованием кругов
     for i, group in enumerate([central_circle, middle_circle, outer_circle]):
         nx.draw_networkx_nodes(G, pos=pos, nodelist=group, node_size=100, node_color='none', edgecolors='black',
-                               linewidths=0.5)  # Уменьшаем размер вершин и задаем тонкие обводки
+                               linewidths=0.5)
 
-    # Рисуем кольца
     for i, group in enumerate([central_circle, middle_circle, outer_circle]):
         radius = (i + 1) * 5
-        circle = plt.Circle((0, 0), radius, color='none', ec='black', linestyle='dashed',
-                            linewidth=0.5)  # Задаем тонкие линии для кругов
+        circle = plt.Circle((0, 0), radius, color='none', ec='black', linestyle='dashed', linewidth=0.5)
         ax.add_patch(circle)
 
-    # Добавляем метки вершин
     labels = {node: node for node in G.nodes}
     nx.draw_networkx_labels(G, pos=pos, labels=labels, font_size=6)
 
@@ -103,10 +96,20 @@ def visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle
     plt.close()
 
 
-def create_new_sheet_with_statistics(input_file_path, output_file_path):
+def create_new_sheet_with_statistics(input_file_path, output_file_path, img_path):
+    """
+    Создает новый файл Excel, добавляет в него статистику и изображение, сохраняет результат.
+
+    Параметры:
+    - input_file_path (str): Путь к исходному файлу Excel.
+    - output_file_path (str): Путь к создаваемому файлу Excel с добавленной статистикой.
+    - img_path (str): Путь к изображению для вставки в созданный файл Excel.
+    """
     df = pd.read_excel(input_file_path, sheet_name='Лист1', index_col=0)
     V_Plus, B_Plus, emotional_expansiveness, sociometric_status = calculate_statistics(df)
 
+    if os.path.exists(output_file_path):
+        os.remove(output_file_path)
 
     with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
         df.to_excel(writer, sheet_name='Лист1')
@@ -123,37 +126,36 @@ def create_new_sheet_with_statistics(input_file_path, output_file_path):
 
         workbook = writer.book
         sheet = workbook[new_sheet_name]
-        img_path = r'D:\Unik\TerVer\data\image.png'
         img = Image(img_path)
         sheet.add_image(img, 'I1')
 
+
 def main():
-    # Пути к файлам Excel
+    """
+    Основная функция, выполняющая анализ данных, визуализацию графа и создание нового файла Excel с результатами.
+
+    Параметры:
+    - input_file_path (str): Путь к исходному файлу Excel.
+    - output_file_path (str): Путь к создаваемому файлу Excel с добавленной статистикой.
+    - output_image_file (str): Путь к изображению для вставки в созданный файл Excel.
+    """
     input_file_path = r'D:\Unik\TerVer\data\Книга1_тест.xlsx'
     output_file_path = r'D:\Unik\TerVer\data\Книга1_тест_со_статистикой.xlsx'
+    output_image_file = r"D:\Unik\TerVer\data\image.png"
 
-    # Создаем копию файла Excel
     shutil.copy(input_file_path, output_file_path)
 
-    # Считываем данные из копии файла
     df = pd.read_excel(output_file_path, sheet_name='Лист1', index_col=0)
     print(df)
 
-    # Вычисляем статистики
-    V_Plus, B_Plus, emotional_expansiveness, sociometric_status = calculate_statistics(df)
     pers_data(df)
     S_group(df)
 
-    # Создаем ориентированный граф
     G = create_directed_graph(df)
 
-    # Получаем словарь, содержащий количество вхождений для каждой вершины
     node_degrees = dict(G.in_degree())
-
-    # Сортируем вершины по количеству вхождений в убывающем порядке
     sorted_nodes = sorted(node_degrees, key=node_degrees.get, reverse=True)
 
-    # Разбиваем вершины на три группы в соответствии с их количеством вхождений
     num_groups = 3
     nodes_per_group = len(sorted_nodes) // num_groups
     remainder = len(sorted_nodes) % num_groups
@@ -162,23 +164,19 @@ def main():
     middle_circle = sorted_nodes[nodes_per_group + remainder:2 * nodes_per_group + remainder]
     outer_circle = sorted_nodes[2 * nodes_per_group + remainder:]
 
-    # Размещаем вершины на оболочках, формируя круги для каждой группы
     pos = {}
     for i, group in enumerate([central_circle, middle_circle, outer_circle]):
         theta = np.linspace(0, 2 * np.pi, len(group), endpoint=False)
-        radius = (i + 1) * 5  # Увеличиваем радиус для каждой группы в 5 раз
+        radius = (i + 1) * 5
         x = radius * np.cos(theta)
         y = radius * np.sin(theta)
 
         for node, (xx, yy) in zip(group, zip(x, y)):
             pos[node] = (xx, yy)
 
-    # Визуализируем граф с кольцами
-    output_image_file = r"D:\Unik\TerVer\data\image.png"
     visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_image_file)
 
-    # Добавляем статистику в созданный файл Excel
-    create_new_sheet_with_statistics(input_file_path, output_file_path)
+    create_new_sheet_with_statistics(input_file_path, output_file_path, output_image_file)
 
 
 if __name__ == "__main__":
