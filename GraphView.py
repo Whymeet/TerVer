@@ -4,36 +4,11 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-from openpyxl import Workbook
 from openpyxl.drawing.image import Image
 
+def calculate_statistics(df):
+    """Вычисление статистик."""
 
-def pers_data(df):
-    """
-    Выводит статистику по каждому участнику.
-
-    Параметры:
-    - df (pd.DataFrame): Исходные данные.
-    """
-    column_length = df.shape[0]
-    for i in range(1, df.shape[0] + 1):
-        sum_column = df[i].sum()
-        sum_row = df.loc[i].sum()
-        print(f' {i}-ый участник\nC+ = {round(sum_column / (column_length - 1), 3)}')
-        print(f'Э+ = {round(sum_row / (column_length - 1), 3)}')
-        if sum_row == 0:
-            print(f'КУО = inf')
-        else:
-            print(f'КУО = {sum_column / sum_row}')
-
-
-def S_group(df):
-    """
-    Выводит статистику по группе.
-
-    Параметры:
-    - df (pd.DataFrame): Исходные данные.
-    """
     V_n_plus = 0
     N = df.shape[0]
     for i in range(1, df.shape[0] + 1):
@@ -44,19 +19,27 @@ def S_group(df):
             if df.iloc[i, j] == 1 and df.iloc[j, i] == 1:
                 V_vz_plus += 1
     V_vz_plus //= 2
-    print(f"S_group = {round(V_vz_plus / V_n_plus, 2) * 100}")
-    print(f"Э_group = {round(V_n_plus / N, 2)}")
-    print(f"BB_group = {round((100 * V_vz_plus) / (0.5 * N * (N - 1)), 2)}")
 
+    S_group = round(V_vz_plus / V_n_plus, 2) * 100
+    Э_group = round(V_n_plus / N, 2)
+    BB_group = round((100 * V_vz_plus) / (0.5 * N * (N - 1)), 2)
 
-def calculate_statistics(df):
-    """Вычисление статистик."""
-    V_Plus = df.sum(axis=1).tolist()
-    B_Plus = df.sum(axis=0).tolist()
-    emotional_expansiveness = [(v / (df.shape[0] - 1)) for v in V_Plus]
-    sociometric_status = [(b / (df.shape[0] - 1)) for b in B_Plus]
+    C_plus = []
+    Э_plus = []
+    KUO = []
+    column_length = df.shape[0]
+    for i in range(1, df.shape[0] + 1):
+        sum_column = df[i].sum()
+        sum_row = df.loc[i].sum()
+        C_plus.append(round(sum_column / (column_length - 1), 3))
+        Э_plus.append(round(sum_row / (column_length - 1), 3))
 
-    return V_Plus, B_Plus, emotional_expansiveness, sociometric_status
+        if sum_row == 0:
+            KUO.append('inf')
+        else:
+            KUO.append(round(sum_column / sum_row, 3))
+
+    return S_group, Э_group,BB_group, C_plus, Э_plus, KUO
 
 
 def create_directed_graph(df):
@@ -106,7 +89,7 @@ def create_new_sheet_with_statistics(input_file_path, output_file_path, img_path
     - img_path (str): Путь к изображению для вставки в созданный файл Excel.
     """
     df = pd.read_excel(input_file_path, sheet_name='Лист1', index_col=0)
-    V_Plus, B_Plus, emotional_expansiveness, sociometric_status = calculate_statistics(df)
+    S_group, Э_group, BB_group, C_plus, Э_plus, KUO = calculate_statistics(df)
 
     if os.path.exists(output_file_path):
         os.remove(output_file_path)
@@ -116,13 +99,20 @@ def create_new_sheet_with_statistics(input_file_path, output_file_path, img_path
 
         new_sheet_name = 'Статистика'
         df_statistics = pd.DataFrame({
-            'V_Plus': V_Plus,
-            'B_Plus': B_Plus,
-            'Emotional_Expansiveness': emotional_expansiveness,
-            'Sociometric_Status': sociometric_status
+            'S_group': [S_group],
+            'Э_group': [Э_group],
+            'BB_group': [BB_group],
+        })
+
+        df_statistics.to_excel(writer, sheet_name=new_sheet_name, startcol=df.shape[1] - 10, startrow = 12)
+
+        df_extended = pd.DataFrame({
+            'C_plus': C_plus,
+            'Э_plus': Э_plus,
+            'КУО': KUO,
         }, index=df.index)
 
-        df_statistics.to_excel(writer, sheet_name=new_sheet_name)
+        df_extended.to_excel(writer, sheet_name=new_sheet_name)
 
         workbook = writer.book
         sheet = workbook[new_sheet_name]
@@ -130,7 +120,7 @@ def create_new_sheet_with_statistics(input_file_path, output_file_path, img_path
         sheet.add_image(img, 'I1')
 
 
-def main():
+def main(input_file_path, output_file_path, output_image_file):
     """
     Основная функция, выполняющая анализ данных, визуализацию графа и создание нового файла Excel с результатами.
 
@@ -139,17 +129,12 @@ def main():
     - output_file_path (str): Путь к создаваемому файлу Excel с добавленной статистикой.
     - output_image_file (str): Путь к изображению для вставки в созданный файл Excel.
     """
-    input_file_path = r'D:\Unik\TerVer\data\Книга1_тест.xlsx'
-    output_file_path = r'D:\Unik\TerVer\data\Книга1_тест_со_статистикой.xlsx'
-    output_image_file = r"D:\Unik\TerVer\data\image.png"
 
     shutil.copy(input_file_path, output_file_path)
 
-    df = pd.read_excel(output_file_path, sheet_name='Лист1', index_col=0)
+    df = pd.read_excel(output_file_path, sheet_name='Лист1', index_col=0) #### ИМЯ ЛИСТА ПОМЕНЯТЬ!
     print(df)
 
-    pers_data(df)
-    S_group(df)
 
     G = create_directed_graph(df)
 
@@ -180,4 +165,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # input_file_path = input('Путь к исходному файлу Excel -> ')
+    # output_file_path =input('Путь к создаваемому файлу Excel с добавленной статистикой -> ')
+    # output_image_file = input('Путь к изображению для вставки в созданный файл Excel -> ')
+    input_file_path = r'C:\Users\79278\Downloads\Telegram Desktop\Data_Socio_2024_ctud_3.xlsx'
+    output_file_path = r'C:\Users\79278\OneDrive\Рабочий стол\Выходные данные.xlsx'
+    output_image_file = r"C:\Users\79278\OneDrive\Рабочий стол\Meoww1.png"
+    main(input_file_path, output_file_path, output_image_file)
