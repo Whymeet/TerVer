@@ -6,6 +6,13 @@ import numpy as np
 import pandas as pd
 from openpyxl.drawing.image import Image
 
+
+current_directory = os.path.dirname(os.path.abspath(__file__))
+
+def get_data_path(path, *args):
+    """Функция для получения относительного пути в папку data."""
+    return os.path.join(current_directory, path , *args)
+
 def calculate_statistics(df):
     """Вычисление статистик."""
 
@@ -168,7 +175,24 @@ if __name__ == "__main__":
     # input_file_path = input('Путь к исходному файлу Excel -> ')
     # output_file_path =input('Путь к создаваемому файлу Excel с добавленной статистикой -> ')
     # output_image_file = input('Путь к изображению для вставки в созданный файл Excel -> ')
-    input_file_path = r'C:\Users\79278\Downloads\Telegram Desktop\Data_Socio_2024_ctud_3.xlsx'
-    output_file_path = r'C:\Users\79278\OneDrive\Рабочий стол\Выходные данные.xlsx'
-    output_image_file = r"C:\Users\79278\OneDrive\Рабочий стол\Meoww1.png"
-    main(input_file_path, output_file_path, output_image_file)
+
+    if __name__ == "__main__":
+        data_directory = get_data_path('data')  # Указываем путь к папке 'data'
+        output_directory = get_data_path('output')  # Указываем путь к папке 'output'
+
+
+        # Проверяем, существует ли папка "output"
+        if not os.path.exists(output_directory):
+            # Если нет, то создаем ее
+            os.makedirs(output_directory)
+
+        # Получаем список файлов в папке "data"
+        excel_files = [file for file in os.listdir(data_directory) if file.endswith('.xlsx')]
+
+        # Перебираем каждый файл и обрабатываем его
+        for excel_file in excel_files:
+            input_file_path = os.path.join(data_directory, excel_file)
+            output_file_path = os.path.join(output_directory, f'Выходные данные_{excel_file}')
+            output_image_file = os.path.join(output_directory, f'Meoww1_{excel_file.replace(".xlsx", ".png")}')
+
+            main(input_file_path, output_file_path, output_image_file)
