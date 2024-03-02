@@ -1,10 +1,11 @@
-import os
-import shutil
-import matplotlib.pyplot as plt
-import networkx as nx
-import numpy as np
-import pandas as pd
-from openpyxl.drawing.image import Image
+# Импорт необходимых библиотек
+import os  # Библиотека для работы с операционной системой
+import shutil  # Библиотека для работы с файлами и папками
+import matplotlib.pyplot as plt  # Библиотека для визуализации данных
+import networkx as nx  # Библиотека для работы с графами
+import numpy as np  # Библиотека для работы с числами
+import pandas as pd  # Библиотека для работы с данными в табличной форме
+from openpyxl.drawing.image import Image  # Класс для вставки изображений в Excel
 
 # Получение текущей директории скрипта
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -17,24 +18,25 @@ def get_data_path(path, *args):
 
 def calculate_statistics(df):
     """Вычисление статистик."""
-    V_n_plus = 0
-    N = df.shape[0]
+    V_n_plus = 0  # Общее число связей
+    N = df.shape[0]  # Общее количество вершин в графе
     for i in range(1, df.shape[0] + 1):
         V_n_plus += df.loc[i].sum()
-    V_vz_plus = 0
+
+    V_vz_plus = 0  # Количество связей взаимодействия (парные связи)
     for i in range(df.shape[0]):
         for j in range(df.shape[1]):
             if df.iloc[i, j] == 1 and df.iloc[j, i] == 1:
                 V_vz_plus += 1
-    V_vz_plus //= 2
+    V_vz_plus //= 2  # Половина, так как каждая связь была учтена дважды
 
-    S_group = round(V_vz_plus / V_n_plus, 2) * 100
-    Э_group = round(V_n_plus / N, 2)
-    BB_group = round((100 * V_vz_plus) / (0.5 * N * (N - 1)), 2)
+    S_group = round(V_vz_plus / V_n_plus, 2) * 100  # Процент связанных вершин относительно общего числа связанных вершин
+    Э_group = round(V_n_plus / N, 2)  # Среднее число связей для каждой вершины
+    BB_group = round((100 * V_vz_plus) / (0.5 * N * (N - 1)), 2)  # Плотность связей в графе
 
-    C_plus = []
-    Э_plus = []
-    KUO = []
+    C_plus = []  # Центральность вершин в сети
+    Э_plus = []  # Эгоцентрическая центральность вершин
+    KUO = []  # Коэффициент управляемости для каждой вершины
     column_length = df.shape[0]
     for i in range(1, df.shape[0] + 1):
         sum_column = df[i].sum()
@@ -43,7 +45,7 @@ def calculate_statistics(df):
         Э_plus.append(round(sum_row / (column_length - 1), 3))
 
         if sum_row == 0:
-            KUO.append('inf')
+            KUO.append('inf')  # Бесконечность, если вершина недостижима из других вершин
         else:
             KUO.append(round(sum_column / sum_row, 3))
 
@@ -57,7 +59,7 @@ def create_directed_graph(df):
     for i in range(df.shape[0]):
         for j in range(df.shape[1]):
             if df.iloc[i, j] == 1:
-                G.add_edge(i + 1, j + 1)
+                G.add_edge(i + 1, j + 1)  # Добавление направленного ребра
 
     return G
 
@@ -83,7 +85,7 @@ def visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle
 
     ax.set_aspect('equal', adjustable='datalim')
 
-    plt.savefig(output_file, dpi=100)
+    plt.savefig(output_file, dpi=100)  # Сохранение изображения
     plt.close()
 
 
@@ -116,25 +118,6 @@ def sort_graph(df):
 
 def main(input_file_path, output_file_path, output_image_file):
     """Главная функция для обработки данных."""
-    # Проверяем, существует ли папка "output"
-    if not os.path.exists(output_directory):
-        # Если нет, то создаем ее
-        os.makedirs(output_directory)
-
-    # Получаем список файлов в папке "data"
-    excel_files = [file for file in os.listdir(data_directory) if file.endswith('.xlsx')]
-
-    # Перебираем каждый файл и обрабатываем его
-    for excel_file in excel_files:
-        input_file_path = os.path.join(data_directory, excel_file)
-        output_file_path = os.path.join(output_directory, f'Выходные данные_{excel_file}')
-        output_image_file = os.path.join(output_directory, f'Graph_{excel_file.replace(".xlsx", ".png")}')
-        print(output_image_file)
-        process_excel_file(input_file_path, output_file_path, output_image_file)
-
-
-def process_excel_file(input_file_path, output_file_path, output_image_file):
-    """Обработка данных из файла Excel."""
     if os.path.exists(output_file_path):
         os.remove(output_file_path)
 
@@ -179,10 +162,10 @@ def process_excel_file(input_file_path, output_file_path, output_image_file):
             img = Image(output_image_file)
             sheet.add_image(img, 'I1')
 
+
 if __name__ == "__main__":
     data_directory = get_data_path('data')  # Указываем путь к папке 'data'
     output_directory = get_data_path('output')  # Указываем путь к папке 'output'
-
 
     # Проверяем, существует ли папка "output"
     if not os.path.exists(output_directory):
