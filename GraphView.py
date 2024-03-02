@@ -6,16 +6,15 @@ import numpy as np
 import pandas as pd
 from openpyxl.drawing.image import Image
 
-
+# Получение текущей директории скрипта
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
 def get_data_path(path, *args):
     """Функция для получения относительного пути в папку data."""
-    return os.path.join(current_directory, path , *args)
+    return os.path.join(current_directory, path, *args)
 
 def calculate_statistics(df):
     """Вычисление статистик."""
-
     V_n_plus = 0
     N = df.shape[0]
     for i in range(1, df.shape[0] + 1):
@@ -46,8 +45,7 @@ def calculate_statistics(df):
         else:
             KUO.append(round(sum_column / sum_row, 3))
 
-    return S_group, Э_group,BB_group, C_plus, Э_plus, KUO
-
+    return S_group, Э_group, BB_group, C_plus, Э_plus, KUO
 
 def create_directed_graph(df):
     """Создание ориентированного графа."""
@@ -59,7 +57,6 @@ def create_directed_graph(df):
                 G.add_edge(i + 1, j + 1)
 
     return G
-
 
 def visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_file):
     """Визуализация графа с кольцами."""
@@ -85,7 +82,6 @@ def visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle
     plt.savefig(output_file, dpi=100)
     plt.close()
 
-
 def create_new_sheets_with_statistics(input_file_path, output_file_path, img_path):
     """
     Создает новый файл Excel, добавляет в него статистику и изображение, сохраняет результат.
@@ -99,11 +95,9 @@ def create_new_sheets_with_statistics(input_file_path, output_file_path, img_pat
         os.remove(output_file_path)
 
     with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
-
-
         for sheet_number in range(1, 7):
-
-            img_path = img_path[:-5] + str(sheet_number) + '.png'
+            # Добавление номера листа к имени файла изображения
+            img_path_with_sheet = img_path[:-5] + str(sheet_number) + '.png'
 
             df = pd.read_excel(input_file_path, sheet_name=f'Лист{sheet_number}', index_col=0)
             S_group, Э_group, BB_group, C_plus, Э_plus, KUO = calculate_statistics(df)
@@ -133,10 +127,8 @@ def create_new_sheets_with_statistics(input_file_path, output_file_path, img_pat
 
             workbook = writer.book
             sheet = workbook[new_sheet_name]
-            img = Image(img_path)
+            img = Image(img_path_with_sheet)
             sheet.add_image(img, 'I1')
-
-
 
 def main(input_file_path, output_file_path, output_image_file):
     """
@@ -150,10 +142,9 @@ def main(input_file_path, output_file_path, output_image_file):
 
     shutil.copy(input_file_path, output_file_path)
 
-
     for sheet_number in range(1, 7):
-
-        output_image_file = output_image_file[:-5] + str(sheet_number) + '.png'
+        # Добавление номера листа к имени файла изображения
+        output_image_file_with_sheet = output_image_file[:-5] + str(sheet_number) + '.png'
 
         df = pd.read_excel(output_file_path, sheet_name=f'Лист{sheet_number}', index_col=0)
 
@@ -180,32 +171,26 @@ def main(input_file_path, output_file_path, output_image_file):
             for node, (xx, yy) in zip(group, zip(x, y)):
                 pos[node] = (xx, yy)
 
-        visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_image_file)
+        visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_image_file_with_sheet)
 
     create_new_sheets_with_statistics(input_file_path, output_file_path, output_image_file)
-
 if __name__ == "__main__":
-    # input_file_path = input('Путь к исходному файлу Excel -> ')
-    # output_file_path =input('Путь к создаваемому файлу Excel с добавленной статистикой -> ')
-    # output_image_file = input('Путь к изображению для вставки в созданный файл Excel -> ')
-
-    if __name__ == "__main__":
-        data_directory = get_data_path('data')  # Указываем путь к папке 'data'
-        output_directory = get_data_path('output')  # Указываем путь к папке 'output'
+    data_directory = get_data_path('data')  # Указываем путь к папке 'data'
+    output_directory = get_data_path('output')  # Указываем путь к папке 'output'
 
 
-        # Проверяем, существует ли папка "output"
-        if not os.path.exists(output_directory):
-            # Если нет, то создаем ее
-            os.makedirs(output_directory)
+    # Проверяем, существует ли папка "output"
+    if not os.path.exists(output_directory):
+        # Если нет, то создаем ее
+        os.makedirs(output_directory)
 
-        # Получаем список файлов в папке "data"
-        excel_files = [file for file in os.listdir(data_directory) if file.endswith('.xlsx')]
+    # Получаем список файлов в папке "data"
+    excel_files = [file for file in os.listdir(data_directory) if file.endswith('.xlsx')]
 
-        # Перебираем каждый файл и обрабатываем его
-        for excel_file in excel_files:
-            input_file_path = os.path.join(data_directory, excel_file)
-            output_file_path = os.path.join(output_directory, f'Выходные данные_{excel_file}')
-            output_image_file = os.path.join(output_directory, f'Graph_{excel_file.replace(".xlsx", ".png")}')
-            print(output_image_file)
-            main(input_file_path, output_file_path, output_image_file)
+    # Перебираем каждый файл и обрабатываем его
+    for excel_file in excel_files:
+        input_file_path = os.path.join(data_directory, excel_file)
+        output_file_path = os.path.join(output_directory, f'Выходные данные_{excel_file}')
+        output_image_file = os.path.join(output_directory, f'Graph_{excel_file.replace(".xlsx", ".png")}')
+        print(output_image_file)
+        main(input_file_path, output_file_path, output_image_file)
