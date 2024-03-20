@@ -58,12 +58,23 @@ def create_directed_graph(df):
 
     return G
 
+def create_mutual_choice_graph(df):
+    """Создание графа взаимных выборов."""
+    G_mutual = nx.Graph()
+
+    for i in range(df.shape[0]):
+        for j in range(i + 1, df.shape[1]):
+            if df.iloc[i, j] == 1 and df.iloc[j, i] == 1:
+                G_mutual.add_edge(i + 1, j + 1)
+
+    return G_mutual
+
 def visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_file):
     """Визуализация графа с кольцами."""
     fig, ax = plt.subplots()
 
     nx.draw_networkx_nodes(G, pos=pos, node_color='skyblue', node_size=100)
-    nx.draw_networkx_edges(G, pos=pos, edge_color='black', width=0.1, arrows=True)
+    nx.draw_networkx_edges(G, pos=pos, edge_color='black', width=1, arrows=True)
 
     for i, group in enumerate([central_circle, middle_circle, outer_circle]):
         nx.draw_networkx_nodes(G, pos=pos, nodelist=group, node_size=100, node_color='none', edgecolors='black',
@@ -173,7 +184,33 @@ def main(input_file_path, output_file_path, output_image_file):
 
         visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_image_file_with_sheet)
 
+        G = create_mutual_choice_graph(df)
+
+        node_degrees = dict(G.degree())  # Изменено на .degree()
+        sorted_nodes = sorted(node_degrees, key=node_degrees.get, reverse=True)
+
+        num_groups = 3
+        nodes_per_group = len(sorted_nodes) // num_groups
+        remainder = len(sorted_nodes) % num_groups
+
+        central_circle = sorted_nodes[:nodes_per_group + remainder]
+        middle_circle = sorted_nodes[nodes_per_group + remainder:2 * nodes_per_group + remainder]
+        outer_circle = sorted_nodes[2 * nodes_per_group + remainder:]
+
+        pos = {}
+        for i, group in enumerate([central_circle, middle_circle, outer_circle]):
+            theta = np.linspace(0, 2 * np.pi, len(group), endpoint=False)
+            radius = (i + 1) * 5
+            x = radius * np.cos(theta)
+            y = radius * np.sin(theta)
+
+            for node, (xx, yy) in zip(group, zip(x, y)):
+                pos[node] = (xx, yy)
+
+        visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_image_file_with_sheet)
+
     create_new_sheets_with_statistics(input_file_path, output_file_path, output_image_file)
+
 if __name__ == "__main__":
     data_directory = get_data_path('data')  # Указываем путь к папке 'data'
     output_directory = get_data_path('output')  # Указываем путь к папке 'output'
