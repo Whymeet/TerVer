@@ -159,27 +159,27 @@ def main(input_file_path, output_file_path, output_image_file_main):
 
             visualize_graph_and_save(G2, pos, central_circle, middle_circle, outer_circle, output_image_file2)
 
-            S_group, Э_group, BB_group, C_plus, Э_plus, KUO = calculate_statistics(df)
+            S_group, E_group, BB_group, C_plus, E_plus, KUO = calculate_statistics(df)
 
             new_sheet_name = f'Статистика{sheet_number}'
             df_statistics = pd.DataFrame({
                 'S_group': [S_group],
-                'Э_group': [Э_group],
+                'E_group': [E_group],
                 'BB_group': [BB_group],
             })
 
-            startcol = max(df.shape[1] - 17, 1)
+            startcol = 3
             startrow = 0
 
-            df_statistics.to_excel(writer, sheet_name=new_sheet_name, startcol=startcol, startrow=startrow)
 
             df_extended = pd.DataFrame({
                 'C_plus': C_plus,
-                'Э_plus': Э_plus,
+                'E_plus': E_plus,
                 'КУО': KUO,
             }, index=df.index)
 
             df_extended.to_excel(writer, sheet_name=new_sheet_name)
+            df_statistics.to_excel(writer, sheet_name=new_sheet_name, startcol=startcol, startrow=startrow)
 
             workbook = writer.book
             sheet = workbook[new_sheet_name]
@@ -207,5 +207,5 @@ if __name__ == "__main__":
         input_file_path = os.path.join(data_directory, excel_file)
         output_file_path = os.path.join(output_directory, f'Выходные данные_{excel_file}')
         output_image_file = os.path.join(output_directory, f'Graph_{excel_file.replace(".xlsx", ".png")}')
-        print(output_image_file)
+
         main(input_file_path, output_file_path, output_image_file)
