@@ -64,16 +64,29 @@ def create_directed_graph(df):
     return G
 
 
+def create_directed_graphbin(df):
+    """Создание ориентированного графа."""
+    G = nx.DiGraph()
+
+    for i in range(df.shape[0]):
+        for j in range(df.shape[1]):
+            if df.iloc[i, j] == 1 and df.iloc[j, i] == 1:
+                G.add_edge(i + 1, j + 1)  # Добавление направленного ребра
+
+    return G
+
+
+
 def visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_file):
     """Визуализация графа с кольцами."""
     fig, ax = plt.subplots()
 
     nx.draw_networkx_nodes(G, pos=pos, node_color='skyblue', node_size=100)
-    nx.draw_networkx_edges(G, pos=pos, edge_color='black', width=0.1, arrows=True)
+    nx.draw_networkx_edges(G, pos=pos, edge_color='black', width=0.4, arrows=True)
 
-    for i, group in enumerate([central_circle, middle_circle, outer_circle]):
-        nx.draw_networkx_nodes(G, pos=pos, nodelist=group, node_size=100, node_color='none', edgecolors='black',
-                               linewidths=0.5)
+    # for i, group in enumerate([central_circle, middle_circle, outer_circle]):
+    #     nx.draw_networkx_nodes(G, pos=pos, nodelist=group, node_size=100, node_color='none', edgecolors='black',
+    #                            linewidths=0.5)  Этот код нужен для подчеркивания вершин
 
     for i, group in enumerate([central_circle, middle_circle, outer_circle]):
         radius = (i + 1) * 5
@@ -85,12 +98,11 @@ def visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle
 
     ax.set_aspect('equal', adjustable='datalim')
 
-    plt.savefig(output_file, dpi=100)  # Сохранение изображения
+    plt.savefig(output_file, dpi=150)  # Сохранение изображения
     plt.close()
 
 
-def sort_graph(df):
-    G = create_directed_graph(df)
+def sort_graph(G):
 
     node_degrees = dict(G.in_degree())
     sorted_nodes = sorted(node_degrees, key=node_degrees.get, reverse=True)
@@ -113,10 +125,10 @@ def sort_graph(df):
         for node, (xx, yy) in zip(group, zip(x, y)):
             pos[node] = (xx, yy)
 
-    return G, pos, central_circle, middle_circle, outer_circle
+    return pos, central_circle, middle_circle, outer_circle
 
 
-def main(input_file_path, output_file_path, output_image_file):
+def main(input_file_path, output_file_path, output_image_file_main):
     """Главная функция для обработки данных."""
     if os.path.exists(output_file_path):
         os.remove(output_file_path)
@@ -124,16 +136,28 @@ def main(input_file_path, output_file_path, output_image_file):
     shutil.copy(input_file_path, output_file_path)
 
     with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
+
         for sheet_number in range(1, 7):
+            output_image_file = output_image_file_main
+            output_image_file2 = output_image_file_main
+
             # Добавление номера листа к имени файла изображения
-            output_image_file = output_image_file[:-5] + str(sheet_number) + '.png'
+            output_image_file = output_image_file[:-4] +"_pic_" + str(sheet_number) + '.png'
+
+            output_image_file2 = output_image_file2[:-4] +"_pic2_" + str(sheet_number) + '.png'
 
             df = pd.read_excel(input_file_path, sheet_name=f'Лист{sheet_number}', index_col=0)
             df.to_excel(writer, sheet_name=f'Лист{sheet_number}')  # Сохраняем исходный лист
 
-            G, pos, central_circle, middle_circle, outer_circle = sort_graph(df)
+
+            G = create_directed_graph(df)
+            pos, central_circle, middle_circle, outer_circle = sort_graph(G)
+
+            G2 = create_directed_graphbin(df)
 
             visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle, output_image_file)
+
+            visualize_graph_and_save(G2, pos, central_circle, middle_circle, outer_circle, output_image_file2)
 
             S_group, Э_group, BB_group, C_plus, Э_plus, KUO = calculate_statistics(df)
 
@@ -144,7 +168,7 @@ def main(input_file_path, output_file_path, output_image_file):
                 'BB_group': [BB_group],
             })
 
-            startcol = max(df.shape[1] - 21, 1)
+            startcol = max(df.shape[1] - 17, 1)
             startrow = 0
 
             df_statistics.to_excel(writer, sheet_name=new_sheet_name, startcol=startcol, startrow=startrow)
@@ -160,7 +184,10 @@ def main(input_file_path, output_file_path, output_image_file):
             workbook = writer.book
             sheet = workbook[new_sheet_name]
             img = Image(output_image_file)
+            img2 = Image(output_image_file2)
             sheet.add_image(img, 'I1')
+            sheet.add_image(img2, 'I38')
+
 
 
 if __name__ == "__main__":
