@@ -30,9 +30,9 @@ def calculate_statistics(df):
                 V_vz_plus += 1
     V_vz_plus //= 2  # Половина, так как каждая связь была учтена дважды
 
-    S_group = round(V_vz_plus / V_n_plus, 2) * 100  # Процент связанных вершин относительно общего числа связанных вершин
-    Э_group = round(V_n_plus / N, 2)  # Среднее число связей для каждой вершины
-    BB_group = round((100 * V_vz_plus) / (0.5 * N * (N - 1)), 2)  # Плотность связей в графе
+    S_group = round(V_vz_plus / V_n_plus, 3) * 100  # Процент связанных вершин относительно общего числа связанных вершин
+    Э_group = round(V_n_plus / N, 3)  # Среднее число связей для каждой вершины
+    BB_group = round((100 * V_vz_plus) / (0.5 * N * (N - 1)), 3)  # Плотность связей в графе
 
     C_plus = []  # Центральность вершин в сети
     Э_plus = []  # Эгоцентрическая центральность вершин
@@ -166,9 +166,9 @@ def main(input_file_path, output_file_path, output_image_file_main):
                 'S_group': [S_group],
                 'E_group': [E_group],
                 'BB_group': [BB_group],
-            })
+            }, index=None)
 
-            startcol = 3
+            startcol = 4
             startrow = 0
 
 
@@ -177,6 +177,7 @@ def main(input_file_path, output_file_path, output_image_file_main):
                 'E_plus': E_plus,
                 'КУО': KUO,
             }, index=df.index)
+
 
             df_extended.to_excel(writer, sheet_name=new_sheet_name)
             df_statistics.to_excel(writer, sheet_name=new_sheet_name, startcol=startcol, startrow=startrow)
