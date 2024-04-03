@@ -5,15 +5,16 @@ import networkx as nx
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from srcc.Graph import Graph
 
-class Graph:
-    def __init__(self, dataframe, use_bin=False):
+
+class Graph_Bin(Graph):
+    def __init__(self, dataframe):
         self.df = dataframe
         self.G = nx.DiGraph()
-        if use_bin:
-            self._create_directed_graph_bin()
-        else:
-            self._create_directed_graph()
+
+        self._create_directed_graph()
+
 
     def _create_directed_graph(self):
         for i in range(self.df.shape[0]):
