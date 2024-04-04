@@ -13,7 +13,7 @@ class FileManager:
     @staticmethod
     def get_full_path(*path_components):
         return os.path.join(os.path.dirname(os.path.abspath(__file__)), *path_components)
-
+print("12asd")
 
 class DataProcessor:
     @staticmethod
