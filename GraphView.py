@@ -89,9 +89,9 @@ def visualize_graph_and_save(G, pos, central_circle, middle_circle, outer_circle
     nx.draw_networkx_labels(G, pos=pos, labels=labels, font_size=6)
 
     ax.set_aspect('equal', adjustable='datalim')
-
     plt.savefig(output_file, dpi=100)
     plt.close()
+
 
 def create_new_sheets_with_statistics(input_file_path, output_file_path, img_path):
     """

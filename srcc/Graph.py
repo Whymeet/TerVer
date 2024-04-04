@@ -5,12 +5,17 @@ import networkx as nx
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from insrc.I_Graph import I_Graph
 
-class Graph:
+
+class Graph(I_Graph):
     def __init__(self, dataframe):
         self.df = dataframe
         self.G = nx.DiGraph()
         self._create_directed_graph()
+
+    def get_graph(self):
+        return self.G
 
     def _create_directed_graph(self):
         for i in range(self.df.shape[0]):
